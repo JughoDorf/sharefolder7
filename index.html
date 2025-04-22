@@ -38,21 +38,16 @@
         return gk_fileData[filename] || "";
         }
         </script><!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SYSADMIN7 Folder</title>
+    <title>SYSADMIN7 Счетчик Любви</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        @font-face {
-            font-family: 'Minecraft';
-            src: url('https://fontmeme.com/fonts/minecraft-font/') format('truetype');
-            font-weight: normal;
-            font-style: normal;
-        }
         body {
-            font-family: 'Minecraft', monospace;
+            font-family: 'Caveat', cursive;
             color: #ffffff;
             text-shadow: 2px 2px #000000;
             overflow: hidden;
@@ -67,11 +62,11 @@
             width: 100%;
             height: 100%;
             z-index: -1;
-            background: linear-gradient(to bottom, #87CEEB, #4682B4); /* Day sky */
+            background: linear-gradient(to bottom, #87CEEB, #4682B4);
             transition: background 10s ease;
         }
         .background.night {
-            background: linear-gradient(to bottom, #2F2F4F, #1C2526); /* Night sky */
+            background: linear-gradient(to bottom, #2F2F4F, #1C2526);
         }
         .sun-moon {
             position: absolute;
@@ -79,13 +74,13 @@
             left: 10%;
             width: 50px;
             height: 50px;
-            background: #FFFF00; /* Sun */
+            background: #FFFF00;
             border-radius: 50%;
             box-shadow: 0 0 20px #FFFF00;
             transition: left 20s linear, background 10s ease, box-shadow 10s ease;
         }
         .background.night .sun-moon {
-            background: #FFFFFF; /* Moon */
+            background: #FFFFFF;
             box-shadow: 0 0 20px #FFFFFF;
             left: 90%;
         }
@@ -103,63 +98,18 @@
             0% { transform: translateX(0); }
             100% { transform: translateX(-50%); }
         }
-        .minecraft-btn {
-            background: linear-gradient(to bottom, #8c8c8c, #6b6b6b);
-            border: 3px solid #555;
-            padding: 10px 20px;
-            text-align: center;
-            cursor: pointer;
-            position: relative;
-            overflow: hidden;
-            transition: transform 0.2s, box-shadow 0.2s;
-            text-transform: uppercase;
-            font-family: 'Minecraft', monospace;
-        }
-        .minecraft-btn:hover {
-            background: linear-gradient(to bottom, #a0a0a0, #7c7c7c);
-            box-shadow: 0 0 10px #00ff00, 0 0 20px #00ff00;
-            transform: scale(1.05);
-        }
-        .minecraft-btn:active {
-            background: linear-gradient(to bottom, #6b6b6b, #8c8c8c);
-            transform: scale(0.95);
-            box-shadow: none;
-        }
-        .minecraft-btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(
-                90deg,
-                transparent,
-                rgba(255, 255, 255, 0.4),
-                transparent
-            );
-            transition: 0.5s;
-        }
-        .minecraft-btn:hover::before {
-            left: 100%;
-        }
-        .file-item {
-            background: linear-gradient(to bottom, #4a3723, #3a2a1b);
-            border: 3px solid #2a1d12;
-            padding: 10px;
-            margin-bottom: 10px;
-        }
-        input[type="file"] {
-            background: linear-gradient(to bottom, #8c8c8c, #6b6b6b);
-            border: 3px solid #555;
-            padding: 10px;
-            color: #fff;
-            font-family: 'Minecraft', monospace;
-            text-shadow: 2px 2px #000000;
-        }
         .content {
             position: relative;
             z-index: 1;
+        }
+        .counter {
+            font-size: 2rem;
+            text-align: center;
+        }
+        .container {
+            background: rgba(0, 0, 0, 0.75);
+            border-radius: 20px;
+            padding: 2rem;
         }
     </style>
 </head>
@@ -169,93 +119,53 @@
         <div class="sun-moon"></div>
     </div>
     <div class="content min-h-screen flex items-center justify-center">
-        <div class="bg-gray-800 bg-opacity-75 p-8 rounded-lg w-full max-w-2xl">
-            <h1 class="text-4xl text-center mb-6">SYSADMIN7 Folder</h1>
-            <div class="mb-6">
-                <input type="file" id="fileInput" class="w-full p-2 mb-4" multiple>
-                <button id="uploadBtn" class="minecraft-btn w-full">Upload Files</button>
-            </div>
-            <div id="fileList" class="space-y-4"></div>
+        <div class="container w-full max-w-2xl">
+            <h1 class="text-5xl text-center mb-6">SYSADMIN7 Счетчик Любви</h1>
+            <div id="counter" class="counter"></div>
         </div>
     </div>
 
     <script>
-        const fileInput = document.getElementById('fileInput');
-        const uploadBtn = document.getElementById('uploadBtn');
-        const fileList = document.getElementById('fileList');
+        const counter = document.getElementById('counter');
         const background = document.getElementById('background');
+
+        // Fixed start date: April 3, 2024
+        const startDate = new Date('2024-04-03T00:00:00');
 
         // Day-night cycle
         function toggleDayNight() {
             background.classList.toggle('night');
-            setTimeout(toggleDayNight, 20000); // Switch every 20 seconds
+            setTimeout(toggleDayNight, 20000);
         }
-        setTimeout(toggleDayNight, 20000); // Start cycle
+        setTimeout(toggleDayNight, 20000);
 
-        // Load files from localStorage on page load
-        document.addEventListener('DOMContentLoaded', loadFiles);
+        // Update counter
+        function updateCounter() {
+            function calculateTime() {
+                const now = new Date();
+                const diff = now - startDate;
 
-        uploadBtn.addEventListener('click', () => {
-            const files = fileInput.files;
-            if (files.length === 0) {
-                alert('Please select at least one file!');
-                return;
+                const years = Math.floor(diff / (1000 * 60 * 60 * 24 * 365));
+                const months = Math.floor((diff % (1000 * 60 * 60 * 24 * 365)) / (1000 * 60 * 60 * 24 * 30));
+                const days = Math.floor((diff % (1000 * 60 * 60 * 24 * 30)) / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+                counter.innerHTML = `
+                    <p>Время с твоей любовью:</p>
+                    <p>С 3 апреля 2024</p>
+                    <p>${years} лет, ${months} месяцев, ${days} дней</p>
+                    <p>${hours} часов, ${minutes} минут, ${seconds} секунд</p>
+                `;
             }
 
-            for (let file of files) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const fileData = {
-                        name: file.name,
-                        type: file.type,
-                        data: e.target.result,
-                        date: new Date().toLocaleString()
-                    };
-                    saveFile(fileData);
-                    displayFile(fileData);
-                };
-                reader.readAsDataURL(file);
-            }
-            fileInput.value = ''; // Clear input
-        });
-
-        function saveFile(fileData) {
-            let files = JSON.parse(localStorage.getItem('minecraftFiles')) || [];
-            files.push(fileData);
-            localStorage.setItem('minecraftFiles', JSON.stringify(files));
+            calculateTime();
+            setInterval(calculateTime, 1000); // Update every second
         }
 
-        function loadFiles() {
-            let files = JSON.parse(localStorage.getItem('minecraftFiles')) || [];
-            files.forEach(file => displayFile(file));
-        }
-
-        function displayFile(file) {
-            const fileItem = document.createElement('div');
-            fileItem.className = 'file-item';
-            fileItem.innerHTML = `
-                <div class="flex justify-between items-center">
-                    <div>
-                        <p><strong>Name:</strong> ${file.name}</p>
-                        <p><strong>Type:</strong> ${file.type || 'Unknown'}</p>
-                        <p><strong>Uploaded:</strong> ${file.date}</p>
-                    </div>
-                    <div>
-                        <a href="${file.data}" download="${file.name}" class="minecraft-btn inline-block mr-2">Download</a>
-                        <button onclick="deleteFile('${file.name}')" class="minecraft-btn inline-block">Delete</button>
-                    </div>
-                </div>
-            `;
-            fileList.appendChild(fileItem);
-        }
-
-        function deleteFile(fileName) {
-            let files = JSON.parse(localStorage.getItem('minecraftFiles')) || [];
-            files = files.filter(file => file.name !== fileName);
-            localStorage.setItem('minecraftFiles', JSON.stringify(files));
-            fileList.innerHTML = ''; // Clear list
-            loadFiles(); // Reload files
-        }
+        // Start counter on page load
+        document.addEventListener('DOMContentLoaded', updateCounter);
     </script>
 </body>
 </html>
