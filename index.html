@@ -1,0 +1,171 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SYSADMIN7 Счетчик Любви</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Caveat', cursive;
+            color: #ffffff;
+            text-shadow: 2px 2px #000000;
+            overflow: hidden;
+            margin: 0;
+            height: 100vh;
+            position: relative;
+        }
+        .background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: linear-gradient(to bottom, #87CEEB, #4682B4);
+            transition: background 10s ease;
+        }
+        .background.night {
+            background: linear-gradient(to bottom, #2F2F4F, #1C2526);
+        }
+        .sun-moon {
+            position: absolute;
+            top: 10%;
+            left: 10%;
+            width: 50px;
+            height: 50px;
+            background: #FFFF00;
+            border-radius: 50%;
+            box-shadow: 0 0 20px #FFFF00;
+            transition: left 20s linear, background 10s ease, box-shadow 10s ease;
+        }
+        .background.night .sun-moon {
+            background: #FFFFFF;
+            box-shadow: 0 0 20px #FFFFFF;
+            left: 90%;
+        }
+        .clouds {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 200%;
+            height: 100%;
+            background: url('https://minecraft.wiki/images/Clouds.png') repeat-x;
+            opacity: 0.5;
+            animation: moveClouds 60s linear infinite;
+        }
+        @keyframes moveClouds {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+        .content {
+            position: relative;
+            z-index: 1;
+        }
+        .counter {
+            font-size: 2rem;
+            text-align: center;
+        }
+        .container {
+            background: rgba(0, 0, 0, 0.75);
+            border-radius: 20px;
+            padding: 2rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="background" id="background">
+        <div class="clouds"></div>
+        <div class="sun-moon"></div>
+    </div>
+    <div class="content min-h-screen flex items-center justify-center">
+        <div class="container w-full max-w-2xl">
+            <h1 class="text-5xl text-center mb-6">SYSADMIN7 Счетчик Любви</h1>
+            <div id="counter" class="counter"></div>
+        </div>
+    </div>
+
+    <script>
+        const counter = document.getElementById('counter');
+        const background = document.getElementById('background');
+
+        // Fixed start date: April 3, 2024
+        const startDate = new Date('2024-04-03T00:00:00');
+
+        // Day-night cycle
+        function toggleDayNight() {
+            background.classList.toggle('night');
+            setTimeout(toggleDayNight, 20000);
+        }
+        setTimeout(toggleDayNight, 20000);
+
+        // Update counter
+        function updateCounter() {
+            function calculateTime() {
+                const now = new Date();
+                const diff = now - startDate;
+
+                const years = Math.floor(diff / (1000 * 60 * 60 * 24 * 365));
+                const months = Math.floor((diff % (1000 * 60 * 60 * 24 * 365)) / (1000 * 60 * 60 * 24 * 30));
+                const days = Math.floor((diff % (1000 * 60 * 60 * 24 * 30)) / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+                counter.innerHTML = `
+                    <p>Время с твоей любовью:</p>
+                    <p>С 3 апреля 2024</p>
+                    <p>${years} лет, ${months} месяцев, ${days} дней</p>
+                    <p>${hours} часов, ${minutes} минут, ${seconds} секунд</p>
+                `;
+            }
+
+            calculateTime();
+            setInterval(calculateTime, 1000); // Update every second
+        }
+
+        // Start counter on page load
+        document.addEventListener('DOMContentLoaded', updateCounter);
+    </script>
+</body>
+</html>
