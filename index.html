@@ -1,0 +1,261 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SYSADMIN7 Folder</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        @font-face {
+            font-family: 'Minecraft';
+            src: url('https://fontmeme.com/fonts/minecraft-font/') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+        body {
+            font-family: 'Minecraft', monospace;
+            color: #ffffff;
+            text-shadow: 2px 2px #000000;
+            overflow: hidden;
+            margin: 0;
+            height: 100vh;
+            position: relative;
+        }
+        .background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: linear-gradient(to bottom, #87CEEB, #4682B4); /* Day sky */
+            transition: background 10s ease;
+        }
+        .background.night {
+            background: linear-gradient(to bottom, #2F2F4F, #1C2526); /* Night sky */
+        }
+        .sun-moon {
+            position: absolute;
+            top: 10%;
+            left: 10%;
+            width: 50px;
+            height: 50px;
+            background: #FFFF00; /* Sun */
+            border-radius: 50%;
+            box-shadow: 0 0 20px #FFFF00;
+            transition: left 20s linear, background 10s ease, box-shadow 10s ease;
+        }
+        .background.night .sun-moon {
+            background: #FFFFFF; /* Moon */
+            box-shadow: 0 0 20px #FFFFFF;
+            left: 90%;
+        }
+        .clouds {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 200%;
+            height: 100%;
+            background: url('https://minecraft.wiki/images/Clouds.png') repeat-x;
+            opacity: 0.5;
+            animation: moveClouds 60s linear infinite;
+        }
+        @keyframes moveClouds {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+        .minecraft-btn {
+            background: linear-gradient(to bottom, #8c8c8c, #6b6b6b);
+            border: 3px solid #555;
+            padding: 10px 20px;
+            text-align: center;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.2s, box-shadow 0.2s;
+            text-transform: uppercase;
+            font-family: 'Minecraft', monospace;
+        }
+        .minecraft-btn:hover {
+            background: linear-gradient(to bottom, #a0a0a0, #7c7c7c);
+            box-shadow: 0 0 10px #00ff00, 0 0 20px #00ff00;
+            transform: scale(1.05);
+        }
+        .minecraft-btn:active {
+            background: linear-gradient(to bottom, #6b6b6b, #8c8c8c);
+            transform: scale(0.95);
+            box-shadow: none;
+        }
+        .minecraft-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                90deg,
+                transparent,
+                rgba(255, 255, 255, 0.4),
+                transparent
+            );
+            transition: 0.5s;
+        }
+        .minecraft-btn:hover::before {
+            left: 100%;
+        }
+        .file-item {
+            background: linear-gradient(to bottom, #4a3723, #3a2a1b);
+            border: 3px solid #2a1d12;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        input[type="file"] {
+            background: linear-gradient(to bottom, #8c8c8c, #6b6b6b);
+            border: 3px solid #555;
+            padding: 10px;
+            color: #fff;
+            font-family: 'Minecraft', monospace;
+            text-shadow: 2px 2px #000000;
+        }
+        .content {
+            position: relative;
+            z-index: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="background" id="background">
+        <div class="clouds"></div>
+        <div class="sun-moon"></div>
+    </div>
+    <div class="content min-h-screen flex items-center justify-center">
+        <div class="bg-gray-800 bg-opacity-75 p-8 rounded-lg w-full max-w-2xl">
+            <h1 class="text-4xl text-center mb-6">SYSADMIN7 Folder</h1>
+            <div class="mb-6">
+                <input type="file" id="fileInput" class="w-full p-2 mb-4" multiple>
+                <button id="uploadBtn" class="minecraft-btn w-full">Upload Files</button>
+            </div>
+            <div id="fileList" class="space-y-4"></div>
+        </div>
+    </div>
+
+    <script>
+        const fileInput = document.getElementById('fileInput');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const fileList = document.getElementById('fileList');
+        const background = document.getElementById('background');
+
+        // Day-night cycle
+        function toggleDayNight() {
+            background.classList.toggle('night');
+            setTimeout(toggleDayNight, 20000); // Switch every 20 seconds
+        }
+        setTimeout(toggleDayNight, 20000); // Start cycle
+
+        // Load files from localStorage on page load
+        document.addEventListener('DOMContentLoaded', loadFiles);
+
+        uploadBtn.addEventListener('click', () => {
+            const files = fileInput.files;
+            if (files.length === 0) {
+                alert('Please select at least one file!');
+                return;
+            }
+
+            for (let file of files) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const fileData = {
+                        name: file.name,
+                        type: file.type,
+                        data: e.target.result,
+                        date: new Date().toLocaleString()
+                    };
+                    saveFile(fileData);
+                    displayFile(fileData);
+                };
+                reader.readAsDataURL(file);
+            }
+            fileInput.value = ''; // Clear input
+        });
+
+        function saveFile(fileData) {
+            let files = JSON.parse(localStorage.getItem('minecraftFiles')) || [];
+            files.push(fileData);
+            localStorage.setItem('minecraftFiles', JSON.stringify(files));
+        }
+
+        function loadFiles() {
+            let files = JSON.parse(localStorage.getItem('minecraftFiles')) || [];
+            files.forEach(file => displayFile(file));
+        }
+
+        function displayFile(file) {
+            const fileItem = document.createElement('div');
+            fileItem.className = 'file-item';
+            fileItem.innerHTML = `
+                <div class="flex justify-between items-center">
+                    <div>
+                        <p><strong>Name:</strong> ${file.name}</p>
+                        <p><strong>Type:</strong> ${file.type || 'Unknown'}</p>
+                        <p><strong>Uploaded:</strong> ${file.date}</p>
+                    </div>
+                    <div>
+                        <a href="${file.data}" download="${file.name}" class="minecraft-btn inline-block mr-2">Download</a>
+                        <button onclick="deleteFile('${file.name}')" class="minecraft-btn inline-block">Delete</button>
+                    </div>
+                </div>
+            `;
+            fileList.appendChild(fileItem);
+        }
+
+        function deleteFile(fileName) {
+            let files = JSON.parse(localStorage.getItem('minecraftFiles')) || [];
+            files = files.filter(file => file.name !== fileName);
+            localStorage.setItem('minecraftFiles', JSON.stringify(files));
+            fileList.innerHTML = ''; // Clear list
+            loadFiles(); // Reload files
+        }
+    </script>
+</body>
+</html>
